@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <File Path="Nuget.Config" />
+    <Project Path="KRT.Onboarding.Api/KRT.Onboarding.Api.csproj" />
+    <Project Path="KRT.Onboarding.Application/KRT.Onboarding.Application.csproj" />
+    <Project Path="KRT.Onboarding.Domain/KRT.Onboarding.Domain.csproj" />
+    <Project Path="KRT.Onboarding.Infrastructure/KRT.Onboarding.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="KRT.Onboarding.UnitTests/KRT.Onboarding.UnitTests.csproj" Id="b5a1e90a-f342-4cb4-8581-d1fddbb93194" />
+  </Folder>
+</Solution>
