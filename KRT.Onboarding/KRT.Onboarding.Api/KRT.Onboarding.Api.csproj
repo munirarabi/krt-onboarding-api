@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KRT.Onboarding.Application\KRT.Onboarding.Application.csproj" />
+    <ProjectReference Include="..\KRT.Onboarding.Infrastructure\KRT.Onboarding.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

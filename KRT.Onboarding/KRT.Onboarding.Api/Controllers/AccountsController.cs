@@ -45,55 +45,27 @@ public class AccountsController : ControllerBase
 
     // GET /api/accounts/{id}
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(
-        Guid id,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var account = await _accountService.GetByIdAsync(
-            id,
-            cancellationToken);
-
-        if (account is null)
-        {
-            return NotFound();
-        }
+        var account = await _accountService.GetByIdAsync(id, cancellationToken);
 
         return Ok(account);
     }
 
     // PUT /api/accounts/{id}
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(
-        Guid id,
-        [FromBody] UpdateAccountRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAccountRequest request, CancellationToken cancellationToken)
     {
-        var account = await _accountService.UpdateAsync(
-            id,
-            request.HolderName,
-            request.Status,
-            cancellationToken);
-
-        if (account is null)
-        {
-            return NotFound();
-        }
+        var account = await _accountService.UpdateAsync(id, request.HolderName, request.Status, cancellationToken);
 
         return Ok(account);
     }
 
     // DELETE /api/accounts/{id}
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(
-        Guid id,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var deleted = await _accountService.DeleteAsync(
-            id,
-            cancellationToken);
-
-        if (!deleted)
-            return NotFound();
+        await _accountService.DeleteAsync(id, cancellationToken);
 
         return NoContent();
     }
