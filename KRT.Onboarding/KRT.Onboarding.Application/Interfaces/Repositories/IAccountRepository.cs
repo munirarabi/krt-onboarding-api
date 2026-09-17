@@ -4,11 +4,11 @@ namespace KRT.Onboarding.Application.Interfaces.Repositories
 {
     public interface IAccountRepository
     {
-        Task<Account?> GetByIdAsync(Guid id);
-        Task<IEnumerable<Account>> GetAllAsync();
-        Task<bool> ExistsByCpfAsync(string cpf);
-        Task AddAsync(Account account);
-        Task UpdateAsync(Account account);
-        Task DeleteAsync(Account account);
+        Task<IEnumerable<Account>> GetAllAsync(CancellationToken cancellationToken);
+        Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+        Task<bool> ExistsByCpfAsync(string cpf, CancellationToken cancellationToken);
+        Task AddAsync(Account account, CancellationToken cancellationToken);
+        Task UpdateAsync(Account account, CancellationToken cancellationToken);
+        Task DeleteAsync(Account account, CancellationToken cancellationToken);
     }
 }

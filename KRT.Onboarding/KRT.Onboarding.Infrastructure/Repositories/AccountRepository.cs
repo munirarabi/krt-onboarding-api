@@ -1,6 +1,7 @@
 ﻿using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Domain.Entities;
 using KRT.Onboarding.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace KRT.Onboarding.Infrastructure.Repositories
 {
@@ -13,34 +14,41 @@ namespace KRT.Onboarding.Infrastructure.Repositories
             _context = context;
         }
 
-        public Task AddAsync(Account account)
+        public async Task<IEnumerable<Account>> GetAllAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _context.Accounts
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
         }
 
-        public Task DeleteAsync(Account account)
+        public async Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _context.Accounts
+                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
-        public Task<bool> ExistsByCpfAsync(string cpf)
+        public async Task<bool> ExistsByCpfAsync(string cpf, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return await _context.Accounts
+                .AnyAsync(x => x.Cpf.Value == cpf, cancellationToken);
         }
 
-        public Task<IEnumerable<Account>> GetAllAsync()
+        public async Task AddAsync(Account account, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            await _context.Accounts.AddAsync(account, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task<Account?> GetByIdAsync(Guid id)
+        public async Task UpdateAsync(Account account, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _context.Accounts.Update(account);
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public Task UpdateAsync(Account account)
+        public async Task DeleteAsync(Account account, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _context.Accounts.Remove(account);
+            await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

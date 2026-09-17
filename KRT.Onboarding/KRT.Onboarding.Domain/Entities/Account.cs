@@ -12,9 +12,7 @@ namespace KRT.Onboarding.Domain.Entities
 
         private Account() { }
 
-        public Account(
-            string holderName,
-            Cpf cpf)
+        public Account(string holderName, Cpf cpf)
         {
             if (string.IsNullOrWhiteSpace(holderName))
                 throw new ArgumentException("Holder name cannot be empty.");
@@ -33,14 +31,9 @@ namespace KRT.Onboarding.Domain.Entities
             HolderName = holderName;
         }
 
-        public void Activate()
+        public void ChangeStatus(AccountStatus status)
         {
-            Status = AccountStatus.Active;
-        }
-
-        public void Deactivate()
-        {
-            Status = AccountStatus.Inactive;
+            Status = status;
         }
     }
 }
