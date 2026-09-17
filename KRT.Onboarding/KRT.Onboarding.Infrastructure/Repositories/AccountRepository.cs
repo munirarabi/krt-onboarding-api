@@ -1,5 +1,6 @@
 ﻿using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Domain.Entities;
+using KRT.Onboarding.Domain.ValueObjects;
 using KRT.Onboarding.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,21 +17,19 @@ namespace KRT.Onboarding.Infrastructure.Repositories
 
         public async Task<IEnumerable<Account>> GetAllAsync(CancellationToken cancellationToken)
         {
-            return await _context.Accounts
-                .AsNoTracking()
-                .ToListAsync(cancellationToken);
+            return await _context.Accounts.AsNoTracking().ToListAsync(cancellationToken);
         }
 
         public async Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            return await _context.Accounts
-                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+            return await _context.Accounts.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
         }
 
         public async Task<bool> ExistsByCpfAsync(string cpf, CancellationToken cancellationToken)
         {
-            return await _context.Accounts
-                .AnyAsync(x => x.Cpf.Value == cpf, cancellationToken);
+            var cpfValue = new Cpf(cpf);
+
+            return await _context.Accounts.AnyAsync(x => x.Cpf == cpfValue, cancellationToken);
         }
 
         public async Task AddAsync(Account account, CancellationToken cancellationToken)
