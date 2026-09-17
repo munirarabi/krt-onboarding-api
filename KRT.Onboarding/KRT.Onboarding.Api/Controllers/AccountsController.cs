@@ -8,12 +8,14 @@ namespace KRT.Onboarding.Api.Controllers;
 [Route("api/accounts")]
 public class AccountsController : ControllerBase
 {
+    #region Dependency injection
     private readonly IAccountService _accountService;
 
     public AccountsController(IAccountService accountService)
     {
         _accountService = accountService;
     }
+    #endregion
 
     // POST /api/accounts
     [HttpPost]

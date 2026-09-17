@@ -1,63 +1,68 @@
-﻿namespace KRT.Onboarding.Domain.ValueObjects
+﻿using KRT.Onboarding.Domain.Exceptions;
+
+namespace KRT.Onboarding.Domain.ValueObjects
 {
-    /*
-     Cpf é um Value Object (Objeto de Valor) no contexto de DDD
-     O sealed significa que ninguém pode herdar dessa classe
-     */
-    public sealed class Cpf
+    public sealed record Cpf
     {
         public string Value { get; }
 
         public Cpf(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
-                throw new ArgumentException("CPF cannot be empty.");
+            {
+                throw new DomainException("CPF cannot be empty.");
+            }
 
-            var normalizedCpf = Normalize(value);
+            // remove máscara e mantém somente os números
+            var normalizedCpf = new string(value.Where(char.IsDigit).ToArray());
 
             if (!IsValid(normalizedCpf))
-                throw new ArgumentException("Invalid CPF.");
+            {
+                throw new DomainException("Invalid CPF.");
+            }
 
             Value = normalizedCpf;
         }
 
-        private static string Normalize(string cpf)
-        {
-            // remover tudo que não for número do CPF
-            return new string(cpf.Where(char.IsDigit).ToArray());
-        }
-
         private static bool IsValid(string cpf)
         {
+            // CPF precisa ter exatamente 11 dígitos
             if (cpf.Length != 11)
                 return false;
 
-            if (cpf.Distinct().Count() == 1)
+            // evita CPFs com todos os números iguais
+            if (cpf.All(x => x == cpf[0]))
                 return false;
 
-            return ValidateDigit(cpf, 9) &&
-                   ValidateDigit(cpf, 10);
-        }
+            var numbers = cpf.Select(x => x - '0').ToArray();
 
-        private static bool ValidateDigit(string cpf, int position)
-        {
+            // cálculo do primeiro dígito verificador
             var sum = 0;
-            var weight = position + 1;
 
-            for (var i = 0; i < position; i++)
-            {
-                sum += (cpf[i] - '0') * weight--;
-            }
+            for (var i = 0; i < 9; i++)
+                sum += numbers[i] * (10 - i);
 
             var remainder = sum % 11;
-            var digit = remainder < 2 ? 0 : 11 - remainder;
+            var firstDigit = remainder < 2 ? 0 : 11 - remainder;
 
-            return cpf[position] - '0' == digit;
+            if (numbers[9] != firstDigit)
+                return false;
+
+            // cálculo do segundo dígito verificador
+            sum = 0;
+
+            for (var i = 0; i < 10; i++)
+                sum += numbers[i] * (11 - i);
+
+            remainder = sum % 11;
+            var secondDigit = remainder < 2 ? 0 : 11 - remainder;
+
+            return numbers[10] == secondDigit;
         }
 
-        //public override string ToString()
-        //{
-        //    return Value;
-        //}
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 }

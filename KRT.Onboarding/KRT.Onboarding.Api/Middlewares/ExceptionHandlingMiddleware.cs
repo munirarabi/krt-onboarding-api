@@ -29,16 +29,55 @@ namespace KRT.Onboarding.Api.Middlewares
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            var statusCode = exception switch
-            {
-                NotFoundException => HttpStatusCode.NotFound,
-                ConflictException => HttpStatusCode.Conflict,
-                ArgumentException => HttpStatusCode.BadRequest,
-                _ => HttpStatusCode.InternalServerError
-            };
+            HttpStatusCode statusCode;
 
-            if (statusCode == HttpStatusCode.InternalServerError)
-                _logger.LogError(exception, "An unexpected error occurred.");
+            if (exception is NotFoundException)
+            {
+                statusCode = HttpStatusCode.NotFound;
+            }
+            else if (exception is ConflictException)
+            {
+                statusCode = HttpStatusCode.Conflict;
+            }
+            else if (exception is ArgumentException)
+            {
+                statusCode = HttpStatusCode.BadRequest;
+            }
+            else
+            {
+                statusCode = HttpStatusCode.InternalServerError;
+            }
+
+            switch (statusCode)
+            {
+                case HttpStatusCode.NotFound:
+                    _logger.LogWarning(
+                        "Resource not found. Path: {Path}. Message: {Message}",
+                        context.Request.Path,
+                        exception.Message);
+                    break;
+
+                case HttpStatusCode.Conflict:
+                    _logger.LogWarning(
+                        "Conflict occurred. Path: {Path}. Message: {Message}",
+                        context.Request.Path,
+                        exception.Message);
+                    break;
+
+                case HttpStatusCode.BadRequest:
+                    _logger.LogWarning(
+                        "Invalid request. Path: {Path}. Message: {Message}",
+                        context.Request.Path,
+                        exception.Message);
+                    break;
+
+                default:
+                    _logger.LogError(
+                        exception,
+                        "An unexpected error occurred. Path: {Path}",
+                        context.Request.Path);
+                    break;
+            }
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;

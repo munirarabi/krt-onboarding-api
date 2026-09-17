@@ -24,7 +24,9 @@ namespace KRT.Onboarding.Application.Services
             var exists = await _accountRepository.ExistsByCpfAsync(cpfValue.Value, cancellationToken);
 
             if (exists)
+            {
                 throw new ConflictException("An account with this CPF already exists.");
+            }
 
             var account = new Account(holderName, cpfValue);
 
@@ -35,7 +37,7 @@ namespace KRT.Onboarding.Application.Services
 
         public async Task<IEnumerable<AccountDto>> GetAllAsync(CancellationToken cancellationToken)
         {
-            var accounts = await _accountRepository.GetAllAsync(cancellationToken);
+            IEnumerable<Account> accounts = await _accountRepository.GetAllAsync(cancellationToken);
 
             return accounts.Select(MapToDto);
         }
@@ -45,7 +47,9 @@ namespace KRT.Onboarding.Application.Services
             var account = await _accountRepository.GetByIdAsync(id, cancellationToken);
 
             if (account is null)
+            {
                 throw new NotFoundException($"Account with ID '{id}' was not found.");
+            }
 
             return MapToDto(account);
         }
@@ -55,7 +59,9 @@ namespace KRT.Onboarding.Application.Services
             var account = await _accountRepository.GetByIdAsync(id, cancellationToken);
 
             if (account is null)
+            {
                 throw new NotFoundException($"Account with ID '{id}' was not found.");
+            }
 
             account.UpdateHolderName(holderName);
             account.ChangeStatus(status);
