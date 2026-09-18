@@ -16,7 +16,7 @@ namespace KRT.Onboarding.Infrastructure.Caching
 
         public async Task<AccountDto?> GetAsync(Guid id, CancellationToken cancellationToken)
         {
-            var key = GetKey(id);
+            string key = GetKey(id);
 
             var cachedAccount = await _cache.GetStringAsync(key, cancellationToken);
 
@@ -30,7 +30,7 @@ namespace KRT.Onboarding.Infrastructure.Caching
 
         public async Task SetAsync(AccountDto account, CancellationToken cancellationToken)
         {
-            var key = GetKey(account.Id);
+            string key = GetKey(account.Id);
 
             var value = JsonSerializer.Serialize(account);
 
@@ -46,7 +46,9 @@ namespace KRT.Onboarding.Infrastructure.Caching
 
         public async Task RemoveAsync(Guid id, CancellationToken cancellationToken)
         {
-            await _cache.RemoveAsync(GetKey(id), cancellationToken);
+            string key = GetKey(id);
+
+            await _cache.RemoveAsync(key, cancellationToken);
         }
 
         private static string GetKey(Guid id)

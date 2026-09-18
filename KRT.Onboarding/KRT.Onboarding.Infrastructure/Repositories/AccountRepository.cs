@@ -27,7 +27,7 @@ namespace KRT.Onboarding.Infrastructure.Repositories
 
         public async Task<bool> ExistsByCpfAsync(string cpf, CancellationToken cancellationToken)
         {
-            var cpfValue = new Cpf(cpf);
+            Cpf cpfValue = new Cpf(cpf);
 
             return await _context.Accounts.AnyAsync(x => x.Cpf == cpfValue, cancellationToken);
         }

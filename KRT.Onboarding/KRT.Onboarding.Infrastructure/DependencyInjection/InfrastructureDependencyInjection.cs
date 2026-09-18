@@ -1,6 +1,8 @@
 ﻿using KRT.Onboarding.Application.Interfaces.Caching;
+using KRT.Onboarding.Application.Interfaces.Messaging;
 using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Infrastructure.Caching;
+using KRT.Onboarding.Infrastructure.Messaging;
 using KRT.Onboarding.Infrastructure.Persistence.Context;
 using KRT.Onboarding.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +34,9 @@ public static class InfrastructureDependencyInjection
 
         // registra a implementacao do serviço de cache
         services.AddScoped<IAccountCacheService, RedisAccountCacheService>();
+
+        // Registra a implementação responsável pela publicação dos eventos
+        services.AddScoped<IEventPublisher, EventPublisher>();
 
         return services;
     }

@@ -1,6 +1,4 @@
 ﻿namespace KRT.Onboarding.Domain.Events
 {
-    public class AccountDeletedEvent
-    {
-    }
+    public record AccountDeletedEvent(Guid AccountId, DateTime OccurredAt);
 }

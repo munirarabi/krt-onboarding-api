@@ -1,5 +1,5 @@
-﻿using System.Text.RegularExpressions;
-using KRT.Onboarding.Domain.Exceptions;
+﻿using KRT.Onboarding.Domain.Exceptions;
+using System.Text.RegularExpressions;
 
 namespace KRT.Onboarding.Domain.ValueObjects
 {
