@@ -1,6 +1,7 @@
 ﻿using KRT.Onboarding.Application.DTOs;
 using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Application.Interfaces.Services;
+using KRT.Onboarding.Application.Mappings;
 using KRT.Onboarding.Domain.Entities;
 using KRT.Onboarding.Domain.Enums;
 using KRT.Onboarding.Domain.Exceptions;
@@ -32,14 +33,14 @@ namespace KRT.Onboarding.Application.Services
 
             await _accountRepository.AddAsync(account, cancellationToken);
 
-            return MapToDto(account);
+            return AccountMapping.ToDto(account);
         }
 
         public async Task<IEnumerable<AccountDto>> GetAllAsync(CancellationToken cancellationToken)
         {
             IEnumerable<Account> accounts = await _accountRepository.GetAllAsync(cancellationToken);
 
-            return accounts.Select(MapToDto);
+            return accounts.Select(AccountMapping.ToDto);
         }
 
         public async Task<AccountDto> GetByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -51,7 +52,7 @@ namespace KRT.Onboarding.Application.Services
                 throw new NotFoundException($"Account with ID '{id}' was not found.");
             }
 
-            return MapToDto(account);
+            return AccountMapping.ToDto(account);
         }
 
         public async Task<AccountDto> UpdateAsync(Guid id, string holderName, AccountStatus status, CancellationToken cancellationToken)
@@ -68,7 +69,7 @@ namespace KRT.Onboarding.Application.Services
 
             await _accountRepository.UpdateAsync(account, cancellationToken);
 
-            return MapToDto(account);
+            return AccountMapping.ToDto(account);
         }
 
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
@@ -76,20 +77,11 @@ namespace KRT.Onboarding.Application.Services
             var account = await _accountRepository.GetByIdAsync(id, cancellationToken);
 
             if (account is null)
+            {
                 throw new NotFoundException($"Account with ID '{id}' was not found.");
+            }
 
             await _accountRepository.DeleteAsync(account, cancellationToken);
-        }
-
-        private static AccountDto MapToDto(Account account)
-        {
-            return new AccountDto
-            {
-                Id = account.Id,
-                HolderName = account.HolderName,
-                Cpf = account.Cpf.Value,
-                Status = account.Status
-            };
         }
     }
 }

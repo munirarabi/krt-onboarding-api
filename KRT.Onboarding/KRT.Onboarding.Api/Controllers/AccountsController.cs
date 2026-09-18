@@ -1,4 +1,5 @@
 ﻿using KRT.Onboarding.Api.Models.Requests;
+using KRT.Onboarding.Api.Models.Responses;
 using KRT.Onboarding.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,30 +20,23 @@ public class AccountsController : ControllerBase
 
     // POST /api/accounts
     [HttpPost]
-    public async Task<IActionResult> Create(
-        [FromBody] CreateAccountRequest request,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] CreateAccountRequest request,
+                                            CancellationToken cancellationToken)
     {
-        var account = await _accountService.CreateAsync(
-            request.HolderName,
-            request.Cpf,
-            cancellationToken);
+        var account = await _accountService.CreateAsync(request.HolderName,
+                                                        request.Cpf,
+                                                        cancellationToken);
 
-        return CreatedAtAction(
-            nameof(GetById),
-            new { id = account.Id },
-            account);
+        return CreatedAtAction(nameof(GetById), new { id = account.Id }, AccountResponse.FromDto(account));
     }
 
     // GET /api/accounts
     [HttpGet]
-    public async Task<IActionResult> GetAll(
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        var accounts = await _accountService.GetAllAsync(
-            cancellationToken);
+        var accounts = await _accountService.GetAllAsync(cancellationToken);
 
-        return Ok(accounts);
+        return Ok(accounts.Select(AccountResponse.FromDto));
     }
 
     // GET /api/accounts/{id}
@@ -51,16 +45,21 @@ public class AccountsController : ControllerBase
     {
         var account = await _accountService.GetByIdAsync(id, cancellationToken);
 
-        return Ok(account);
+        return Ok(AccountResponse.FromDto(account));
     }
 
     // PUT /api/accounts/{id}
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateAccountRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Update(Guid id, 
+                                            [FromBody] UpdateAccountRequest request,
+                                            CancellationToken cancellationToken)
     {
-        var account = await _accountService.UpdateAsync(id, request.HolderName, request.Status, cancellationToken);
+        var account = await _accountService.UpdateAsync(id,
+                                                        request.HolderName,
+                                                        request.Status,
+                                                        cancellationToken);
 
-        return Ok(account);
+        return Ok(AccountResponse.FromDto(account));
     }
 
     // DELETE /api/accounts/{id}

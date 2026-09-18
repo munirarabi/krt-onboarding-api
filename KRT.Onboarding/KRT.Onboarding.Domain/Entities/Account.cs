@@ -18,7 +18,7 @@ namespace KRT.Onboarding.Domain.Entities
             Id = Guid.NewGuid();
             HolderName = holderName.Trim();
             Cpf = cpf;
-            Status = AccountStatus.Active; // por padrão os novos usuários começaram como Ativos.
+            Status = AccountStatus.Active; // por padrão os novos usuários são Ativos por Default.
         }
 
         public void UpdateHolderName(string holderName)

@@ -31,6 +31,7 @@ namespace KRT.Onboarding.Api.Middlewares
         {
             HttpStatusCode statusCode;
 
+            // Daria pra melhor usando um Switch Case
             if (exception is NotFoundException)
             {
                 statusCode = HttpStatusCode.NotFound;
@@ -90,7 +91,9 @@ namespace KRT.Onboarding.Api.Middlewares
                     : exception.Message
             };
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            var jsonSerialize = JsonSerializer.Serialize(response);
+
+            await context.Response.WriteAsync(jsonSerialize);
         }
     }
 }

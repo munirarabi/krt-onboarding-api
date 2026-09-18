@@ -9,12 +9,10 @@ namespace KRT.Onboarding.Infrastructure.DependencyInjection;
 
 public static class InfrastructureDependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services,
+                                                       IConfiguration configuration)
     {
-        var connectionString =
-            configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddDbContext<OnboardingDbContext>(options =>
             options.UseSqlServer(connectionString));
