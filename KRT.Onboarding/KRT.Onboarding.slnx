@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Folder Name="/src/">
     <File Path="Nuget.Config" />
     <Project Path="KRT.Onboarding.Api/KRT.Onboarding.Api.csproj" />

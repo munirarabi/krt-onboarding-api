@@ -21,8 +21,14 @@ namespace KRT.Onboarding.Infrastructure.Persistence.Configurations
 
             // obrigatorio (not null) e máx de 150 chars.
             builder.Property(x => x.HolderName)
-                .IsRequired()
-                .HasMaxLength(150);
+                /*
+                 isso ensina o EF como converter o Value Object HolderName para um tipo que o SQL Server consegue armazenar e vice-versa....
+                 */
+                .HasConversion(
+                    holderName => holderName.Value,
+                    value => new HolderName(value))
+                .HasMaxLength(150)
+                .IsRequired();
 
             // diz pro EF core que precisa tratar o cpf como value (string), max de 11 e é NOT null
             builder.Property(x => x.Cpf)
