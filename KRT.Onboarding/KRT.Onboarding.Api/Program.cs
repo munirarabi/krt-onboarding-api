@@ -1,14 +1,11 @@
+using KRT.Onboarding.Api.Extensions;
 using KRT.Onboarding.Api.Middlewares;
 using KRT.Onboarding.Application;
 using KRT.Onboarding.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.Services.AddApiServices();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
