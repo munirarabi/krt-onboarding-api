@@ -1,4 +1,5 @@
 ﻿using KRT.Onboarding.Application.DTOs;
+using KRT.Onboarding.Application.Interfaces.Caching;
 using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Application.Interfaces.Services;
 using KRT.Onboarding.Application.Mappings;
@@ -11,16 +12,25 @@ namespace KRT.Onboarding.Application.Services
 {
     public class AccountService : IAccountService
     {
+        #region injeção de dependência
         private readonly IAccountRepository _accountRepository;
+        private readonly IAccountCacheService _accountCacheService;
 
-        public AccountService(IAccountRepository accountRepository)
+
+        public AccountService(IAccountRepository accountRepository,
+                              IAccountCacheService accountCacheService)
         {
             _accountRepository = accountRepository;
+            _accountCacheService = accountCacheService;
         }
+        #endregion
 
-        public async Task<AccountDto> CreateAsync(string holderName, string cpf, CancellationToken cancellationToken)
+        public async Task<AccountDto> CreateAsync(string holderName,
+                                                  string cpf,
+                                                  CancellationToken cancellationToken)
         {
             var cpfValue = new Cpf(cpf);
+            var holderNameValue = new HolderName(holderName);
 
             var exists = await _accountRepository.ExistsByCpfAsync(cpfValue.Value, cancellationToken);
 
@@ -29,7 +39,7 @@ namespace KRT.Onboarding.Application.Services
                 throw new ConflictException("An account with this CPF already exists.");
             }
 
-            var account = new Account(holderName, cpfValue);
+            var account = new Account(holderNameValue, cpfValue);
 
             await _accountRepository.AddAsync(account, cancellationToken);
 
@@ -43,8 +53,19 @@ namespace KRT.Onboarding.Application.Services
             return accounts.Select(AccountMapping.ToDto);
         }
 
+        // Metodo utilizando comportamento de cache-aside:
         public async Task<AccountDto> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         {
+            // Primeiro pesquisa o dado no cache
+            var cachedAccount = await _accountCacheService.GetAsync(id, cancellationToken);
+
+            // Se existir no cache retorna ele.
+            if (cachedAccount is not null)
+            {
+                return cachedAccount;
+            }
+
+            // Se não existir no cache, busca no banco.
             var account = await _accountRepository.GetByIdAsync(id, cancellationToken);
 
             if (account is null)
@@ -52,10 +73,18 @@ namespace KRT.Onboarding.Application.Services
                 throw new NotFoundException($"Account with ID '{id}' was not found.");
             }
 
-            return AccountMapping.ToDto(account);
+            var accountDto = AccountMapping.ToDto(account);
+
+            await _accountCacheService.SetAsync(accountDto, cancellationToken);
+
+            return accountDto;
         }
 
-        public async Task<AccountDto> UpdateAsync(Guid id, string holderName, AccountStatus status, CancellationToken cancellationToken)
+        // Metodo de update utilizando invalidacao de cache
+        public async Task<AccountDto> UpdateAsync(Guid id,
+                                                  string holderName,
+                                                  AccountStatus status,
+                                                  CancellationToken cancellationToken)
         {
             var account = await _accountRepository.GetByIdAsync(id, cancellationToken);
 
@@ -64,10 +93,14 @@ namespace KRT.Onboarding.Application.Services
                 throw new NotFoundException($"Account with ID '{id}' was not found.");
             }
 
-            account.UpdateHolderName(holderName);
+            var holderNameValue = new HolderName(holderName);
+
+            account.UpdateHolderName(holderNameValue);
             account.ChangeStatus(status);
 
             await _accountRepository.UpdateAsync(account, cancellationToken);
+
+            await _accountCacheService.RemoveAsync(id, cancellationToken);
 
             return AccountMapping.ToDto(account);
         }
@@ -82,6 +115,8 @@ namespace KRT.Onboarding.Application.Services
             }
 
             await _accountRepository.DeleteAsync(account, cancellationToken);
+
+            await _accountCacheService.RemoveAsync(id, cancellationToken);
         }
     }
 }

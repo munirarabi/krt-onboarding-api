@@ -10,7 +10,7 @@ namespace KRT.Onboarding.Application.Mappings
             return new AccountDto
             {
                 Id = account.Id,
-                HolderName = account.HolderName,
+                HolderName = account.HolderName.Value,
                 Cpf = account.Cpf.Value,
                 Status = account.Status
             };

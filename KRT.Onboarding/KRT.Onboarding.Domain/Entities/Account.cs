@@ -7,25 +7,27 @@ namespace KRT.Onboarding.Domain.Entities
     public class Account
     {
         public Guid Id { get; private set; }
-        public string HolderName { get; private set; }
+        public HolderName HolderName { get; private set; }
         public Cpf Cpf { get; private set; }
         public AccountStatus Status { get; private set; }
 
-        public Account(string holderName, Cpf cpf)
+        private Account()
         {
-            ValidateHolderName(holderName);
-
-            Id = Guid.NewGuid();
-            HolderName = holderName.Trim();
-            Cpf = cpf;
-            Status = AccountStatus.Active; // por padrão os novos usuários são Ativos por Default.
+            HolderName = null!;
+            Cpf = null!;
         }
 
-        public void UpdateHolderName(string holderName)
+        public Account(HolderName holderName, Cpf cpf)
         {
-            ValidateHolderName(holderName);
+            Id = Guid.NewGuid();
+            HolderName = holderName;
+            Cpf = cpf;
+            Status = AccountStatus.Active; // novos usuários irão começar como ativos por default.
+        }
 
-            HolderName = holderName.Trim();
+        public void UpdateHolderName(HolderName holderName)
+        {
+            HolderName = holderName;
         }
 
         public void ChangeStatus(AccountStatus status)
@@ -36,24 +38,6 @@ namespace KRT.Onboarding.Domain.Entities
             }
 
             Status = status;
-        }
-
-        private static void ValidateHolderName(string holderName)
-        {
-            if (string.IsNullOrWhiteSpace(holderName))
-            {
-                throw new DomainException("Holder name cannot be empty");
-            }
-
-            if (holderName.Length > 150)
-            {
-                throw new DomainException("Holder name cannot exceed 150 characters");
-            }
-
-            if (holderName.Length < 3)
-            {
-                throw new DomainException("Holder name must be at least 3 characters long.");
-            }
         }
     }
 }
