@@ -10,7 +10,13 @@ namespace KRT.Onboarding.Infrastructure.Persistence.Configurations
         public void Configure(EntityTypeBuilder<Account> builder)
         {
             // tabela
-            builder.ToTable("Accounts");
+            // Permitindo somente registros com 0 ou 1 porque são os dois status existentes atualmente.
+            builder.ToTable("Accounts", tableBuilder =>
+            {
+                tableBuilder.HasCheckConstraint(
+                    "CK_Accounts_Status",
+                    "[Status] IN (0, 1)");
+            });
 
             // pk da tabela
             builder.HasKey(x => x.Id);

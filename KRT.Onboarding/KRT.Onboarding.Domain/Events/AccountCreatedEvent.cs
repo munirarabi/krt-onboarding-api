@@ -1,6 +1,4 @@
 ﻿namespace KRT.Onboarding.Domain.Events
 {
-    public class AccountCreatedEvent
-    {
-    }
+    public record AccountCreatedEvent(Guid AccountId, string HolderName, string Cpf, DateTime OccurredAt);
 }

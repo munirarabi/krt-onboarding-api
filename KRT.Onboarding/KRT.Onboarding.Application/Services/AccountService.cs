@@ -1,12 +1,15 @@
 ﻿using KRT.Onboarding.Application.DTOs;
 using KRT.Onboarding.Application.Interfaces.Caching;
+using KRT.Onboarding.Application.Interfaces.Messaging;
 using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Application.Interfaces.Services;
 using KRT.Onboarding.Application.Mappings;
 using KRT.Onboarding.Domain.Entities;
 using KRT.Onboarding.Domain.Enums;
+using KRT.Onboarding.Domain.Events;
 using KRT.Onboarding.Domain.Exceptions;
 using KRT.Onboarding.Domain.ValueObjects;
+using Microsoft.Extensions.Logging;
 
 namespace KRT.Onboarding.Application.Services
 {
@@ -15,13 +18,18 @@ namespace KRT.Onboarding.Application.Services
         #region injeção de dependência
         private readonly IAccountRepository _accountRepository;
         private readonly IAccountCacheService _accountCacheService;
-
+        private readonly IEventPublisher _eventPublisher;
+        private readonly ILogger<AccountService> _logger;
 
         public AccountService(IAccountRepository accountRepository,
-                              IAccountCacheService accountCacheService)
+                              IAccountCacheService accountCacheService,
+                              IEventPublisher eventPublisher,
+                              ILogger<AccountService> logger)
         {
             _accountRepository = accountRepository;
             _accountCacheService = accountCacheService;
+            _eventPublisher = eventPublisher;
+            _logger = logger;
         }
         #endregion
 
@@ -43,6 +51,30 @@ namespace KRT.Onboarding.Application.Services
 
             await _accountRepository.AddAsync(account, cancellationToken);
 
+            try
+            {
+                // Publica o evento de criação da conta na mensageria
+                await _eventPublisher.PublishAsync(
+                    new AccountCreatedEvent(account.Id,
+                                            account.HolderName.Value,
+                                            account.Cpf.Value,
+                                            DateTime.UtcNow),
+                    cancellationToken
+                );
+
+                // TODO: Implementar mecanismo de retry/fila para eventos nao publicados
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to publish AccountCreatedEvent for account {AccountId}.",
+                    account.Id
+                );
+
+                // não propaga o erro, pois a criação da conta já foi concluída
+            }
+
             return AccountMapping.ToDto(account);
         }
 
@@ -50,7 +82,9 @@ namespace KRT.Onboarding.Application.Services
         {
             IEnumerable<Account> accounts = await _accountRepository.GetAllAsync(cancellationToken);
 
-            return accounts.Select(AccountMapping.ToDto);
+            var accountsList = accounts.Select(AccountMapping.ToDto);
+
+            return accountsList;
         }
 
         // Metodo utilizando comportamento de cache-aside:
@@ -102,6 +136,31 @@ namespace KRT.Onboarding.Application.Services
 
             await _accountCacheService.RemoveAsync(id, cancellationToken);
 
+            try
+            {
+                // Publica o evento de atualização da conta na mensageria
+                await _eventPublisher.PublishAsync(
+                    new AccountUpdatedEvent(
+                        account.Id,
+                        account.HolderName.Value,
+                        account.Status.ToString(),
+                        DateTime.UtcNow),
+                    cancellationToken
+                );
+
+                // TODO: implementar mecanismo de retry/fila para eventos não publicados
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    exception,
+                    "Failed to publish AccountUpdatedEvent for account {AccountId}.",
+                    account.Id
+                );
+
+                // não propaga o erro, pois a atualizaao da conta já foi concluída
+            }
+
             return AccountMapping.ToDto(account);
         }
 
@@ -117,6 +176,29 @@ namespace KRT.Onboarding.Application.Services
             await _accountRepository.DeleteAsync(account, cancellationToken);
 
             await _accountCacheService.RemoveAsync(id, cancellationToken);
+
+            try
+            {
+                // publica o evento de exclusão da conta na mensageria
+                await _eventPublisher.PublishAsync(
+                    new AccountDeletedEvent(
+                        account.Id,
+                        DateTime.UtcNow),
+                    cancellationToken
+                );
+
+                // TODO: implementar mecanismo de retry/fila para eventos não publicados
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(
+                    exception,
+                    "Failed to publish AccountDeletedEvent for account {AccountId}.",
+                    account.Id
+                );
+
+                // não propaga o erro, pois a exclusão da conta já foi concluída
+            }
         }
     }
 }
