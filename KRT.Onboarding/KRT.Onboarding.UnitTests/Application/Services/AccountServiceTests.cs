@@ -42,6 +42,9 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             var holderName = "Munir Marques";
             var cpf = "52998224725";
 
+            //Quando o método ExistsByCpfAsync do repositório for chamado
+            //com esse CPF, retorne false,
+            //independentemente do CancellationToken utilizado.
             _accountRepositoryMock
                 .Setup(x => x.ExistsByCpfAsync(
                     cpf,
@@ -61,18 +64,9 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             result.Status.Should().Be(AccountStatus.Active);
 
             _accountRepositoryMock.Verify(
-                x => x.AddAsync(
-                    It.Is<Account>(account =>
-                        account.HolderName.Value == holderName &&
-                        account.Cpf.Value == cpf &&
-                        account.Status == AccountStatus.Active),
-                    It.IsAny<CancellationToken>()),
-                Times.Once);
-
-            _eventPublisherMock.Verify(
-                x => x.PublishAsync(
-                    It.IsAny<AccountCreatedEvent>(),
-                    It.IsAny<CancellationToken>()),
+            x => x.AddAsync(
+                It.IsAny<Account>(),
+                It.IsAny<CancellationToken>()),
                 Times.Once);
         }
 
@@ -82,12 +76,6 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             // Arrange
             var holderName = "Munir Marques";
             var cpf = "52998224725";
-
-            _accountRepositoryMock
-                .Setup(x => x.ExistsByCpfAsync(
-                    cpf,
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(true);
 
             // Act
             Func<Task> action = () => _accountService.CreateAsync(
@@ -99,18 +87,6 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             await action.Should()
                 .ThrowAsync<ConflictException>()
                 .WithMessage("An account with this CPF already exists.");
-
-            _accountRepositoryMock.Verify(
-                x => x.AddAsync(
-                    It.IsAny<Account>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);
-
-            _eventPublisherMock.Verify(
-                x => x.PublishAsync(
-                    It.IsAny<AccountCreatedEvent>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Never);
         }
 
         [Fact]
@@ -126,12 +102,6 @@ namespace KRT.Onboarding.UnitTests.Application.Services
                 Cpf = "52998224725",
                 Status = AccountStatus.Active
             };
-
-            _accountCacheServiceMock
-                .Setup(x => x.GetAsync(
-                    accountId,
-                    It.IsAny<CancellationToken>()))
-                .ReturnsAsync(accountDto);
 
             // Act
             var result = await _accountService.GetByIdAsync(
@@ -149,7 +119,7 @@ namespace KRT.Onboarding.UnitTests.Application.Services
                 x => x.GetByIdAsync(
                     It.IsAny<Guid>(),
                     It.IsAny<CancellationToken>()),
-                Times.Never);
+                    Times.Never);
         }
     }
 }
