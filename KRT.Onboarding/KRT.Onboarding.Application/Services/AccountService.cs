@@ -61,8 +61,6 @@ namespace KRT.Onboarding.Application.Services
                                             DateTime.UtcNow),
                     cancellationToken
                 );
-
-                // TODO: Implementar mecanismo de retry/fila para eventos nao publicados
             }
             catch (Exception ex)
             {
@@ -72,7 +70,7 @@ namespace KRT.Onboarding.Application.Services
                     account.Id
                 );
 
-                // não propaga o erro, pois a criação da conta já foi concluída
+                // TODO: Implementar mecanismo de retry/fila para eventos nao publicados
             }
 
             return AccountMapping.ToDto(account);
@@ -146,8 +144,6 @@ namespace KRT.Onboarding.Application.Services
                         DateTime.UtcNow),
                     cancellationToken
                 );
-
-                // TODO: implementar mecanismo de retry/fila para eventos não publicados
             }
             catch (Exception exception)
             {
@@ -157,7 +153,7 @@ namespace KRT.Onboarding.Application.Services
                     account.Id
                 );
 
-                // não propaga o erro, pois a atualizaao da conta já foi concluída
+                // TODO: implementar mecanismo de retry/fila para eventos não publicados
             }
 
             return AccountMapping.ToDto(account);
@@ -172,8 +168,10 @@ namespace KRT.Onboarding.Application.Services
                 throw new NotFoundException($"Account with ID '{id}' was not found.");
             }
 
+            // Deleta do banco
             await _accountRepository.DeleteAsync(account, cancellationToken);
 
+            // Deleta do cache
             await _accountCacheService.RemoveAsync(id, cancellationToken);
 
             try
@@ -185,8 +183,6 @@ namespace KRT.Onboarding.Application.Services
                         DateTime.UtcNow),
                     cancellationToken
                 );
-
-                // TODO: implementar mecanismo de retry/fila para eventos não publicados
             }
             catch (Exception exception)
             {
@@ -196,7 +192,7 @@ namespace KRT.Onboarding.Application.Services
                     account.Id
                 );
 
-                // não propaga o erro, pois a exclusão da conta já foi concluída
+                // TODO: implementar mecanismo de retry/fila para eventos não publicados
             }
         }
     }

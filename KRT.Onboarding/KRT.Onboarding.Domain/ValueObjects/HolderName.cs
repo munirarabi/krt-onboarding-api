@@ -27,11 +27,13 @@ namespace KRT.Onboarding.Domain.ValueObjects
                 throw new DomainException("Holder name cannot exceed 150 characters.");
             }
 
+            // O nome precisa possuir pelo menos uma letra.
             if (!normalizedName.Any(char.IsLetter))
             {
                 throw new DomainException("Holder name must contain letters.");
             }
 
+            // O nome não pode possuir números.
             if (normalizedName.Any(char.IsDigit))
             {
                 throw new DomainException("Holder name cannot contain numbers.");

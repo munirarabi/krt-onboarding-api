@@ -52,47 +52,34 @@ namespace KRT.Onboarding.UnitTests.Domain.Entities
         }
 
         [Fact]
-        public void UpdateHolderName_DeveAlterarNomeDaConta()
+        public void Update_DeveAlterarDadosDaConta()
         {
             // Arrange
             var holderName = new HolderName("Munir Marques");
-            var novoHolderName = new HolderName("João Gonçalves");
             var cpf = new Cpf("52998224725");
             var account = new Account(holderName, cpf);
+            var novoHolderName = new HolderName("Munir Marques Silva");
 
             // Act
-            account.UpdateHolderName(novoHolderName);
+            account.Update(novoHolderName, AccountStatus.Inactive);
 
             // Assert
             account.HolderName.Should().Be(novoHolderName);
-        }
-
-        [Fact]
-        public void ChangeStatus_DeveAlterarStatusDaConta()
-        {
-            // Arrange
-            var holderName = new HolderName("Munir Marques");
-            var cpf = new Cpf("52998224725");
-            var account = new Account(holderName, cpf);
-
-            // Act
-            account.ChangeStatus(AccountStatus.Inactive);
-
-            // Assert
             account.Status.Should().Be(AccountStatus.Inactive);
         }
 
         [Fact]
-        public void ChangeStatus_DeveLancarDomainException_QuandoStatusForInvalido()
+        public void Update_DeveLancarDomainException_QuandoStatusForInvalido()
         {
             // Arrange
             var holderName = new HolderName("Munir Marques");
             var cpf = new Cpf("52998224725");
             var account = new Account(holderName, cpf);
-            var statusInvalido = (AccountStatus)999; // Força um valor inexistente no enum
+            var novoHolderName = new HolderName("Munir Marques Silva");
+            var statusInvalido = (AccountStatus)999;
 
             // Act
-            Action action = () => account.ChangeStatus(statusInvalido);
+            Action action = () => account.Update(novoHolderName, statusInvalido);
 
             // Assert
             action.Should()
