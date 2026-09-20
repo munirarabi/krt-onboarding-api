@@ -1,484 +1,686 @@
-# \# KRT Onboarding API
+# KRT Onboarding API
 
-# 
+API REST desenvolvida em **.NET 8** para gerenciamento de contas de clientes de um banco fictício (Onboarding).
 
-# API desenvolvida em .NET 8 para gerenciamento de contas de clientes do banco fictício KRT.
+Desafio técnico, com foco em boas práticas, separação de responsabilidades, regras de domínio, cache, arquitetura orientada a eventos e testes unitários.
 
-# 
+## Tecnologias utilizadas
 
-# O projeto foi desenvolvido como parte de um desafio técnico, com foco na organização do código, separação de responsabilidades, boas práticas e facilidade de manutenção.
+* .NET 8
+* ASP.NET Core Web API
+* Entity Framework Core
+* SQL Server
+* Redis
+* Docker
+* xUnit
+* Moq
+* Swagger Documentação
 
-# 
+## Executando o projeto
 
-# \## Tecnologias utilizadas
+### Pré-requisitos
 
-# 
+É necessário possuir:
 
-# \* .NET 8
+* .NET 8 SDK
+* SQL Server
+* Docker Desktop
 
-# \* ASP.NET Core Web API
+O Redis pode ser executado através de Docker.
 
-# \* Entity Framework Core
+### 1. Clone o repositório
 
-# \* SQL Server
+```bash
+git clone <repository-url>
+```
 
-# \* Swagger / OpenAPI
+Acesse o diretório:
 
-# \* xUnit
+```bash
+cd krt-onboarding-api
+```
 
-# \* Redis \*(cache)\*
+### 2. Configure a conexão com SQL Server
 
-# \* Mensageria \*(eventos de conta)\*
+A aplicação espera uma connection string chamada:
 
-# 
+```text
+DefaultConnection
+```
 
-# \## Funcionalidades
+Por segurança, credenciais reais não devem ser versionadas no repositório.
 
-# 
+É recomendado utilizar User Secrets durante o desenvolvimento local.
 
-# A API permite realizar o gerenciamento de contas através das seguintes operações:
+Exemplo:
 
-# 
+```bash
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<sua-connection-string>" --project KRT.Onboarding.Api
+```
 
-# \* Criar uma conta
+### 3. Inicie o Redis
 
-# \* Consultar todas as contas
+O projeto contém configuração Docker para Redis.
 
-# \* Consultar uma conta por ID
+```bash
+docker compose up -d
+```
 
-# \* Atualizar uma conta
+A configuração local utiliza:
 
-# \* Excluir uma conta
+```text
+localhost:6379
+```
 
-# 
+A connection string esperada é:
 
-# Cada conta possui:
+```json
+{
+  "ConnectionStrings": {
+    "Redis": "localhost:6379"
+  }
+}
+```
 
-# 
+### 4. Execute as migrations
 
-# \* ID
+```bash
+dotnet ef database update --project KRT.Onboarding.Infrastructure --startup-project KRT.Onboarding.Api
+```
 
-# \* Nome do titular
+### 5. Execute a API
 
-# \* CPF
+```bash
+dotnet run --project KRT.Onboarding.Api
+```
 
-# \* Status (Ativa/Inativa)
+### 6. Swagger
 
-# 
+Com a aplicação executando em ambiente de desenvolvimento, acesse o endpoint `/swagger` disponibilizado pela API para visualizar e testar os endpoints.
 
-# \## Estrutura do projeto
+## Endpoints
 
-# 
+Principais operações disponíveis:
 
-# A solução foi dividida em camadas para manter as responsabilidades separadas:
+```text
+POST    /api/accounts
+GET     /api/accounts
+GET     /api/accounts/{id}
+PUT     /api/accounts/{id}
+DELETE  /api/accounts/{id}
+```
 
-# 
+### Criar conta
 
-# ```text
+Exemplo:
 
-# KRT.Onboarding
+```json
+{
+  "holderName": "Munir Marques",
+  "cpf": "529.982.247-25"
+}
+```
 
-# │
+A conta será criada inicialmente como `Active`.
 
-# ├── src
+### Atualizar conta
 
-# │   ├── KRT.Onboarding.Api
+Exemplo:
 
-# │   ├── KRT.Onboarding.Application
+```json
+{
+  "holderName": "Munir Marques",
+  "status": 0
+}
+```
 
-# │   ├── KRT.Onboarding.Domain
+Onde:
 
-# │   └── KRT.Onboarding.Infrastructure
+```text
+0 = Inactive
+1 = Active
+```
 
-# │
+## Arquitetura
 
-# └── tests
+A solução foi organizada buscando separar as responsabilidades entre domínio, casos de uso, infraestrutura e camada de apresentação.
 
-# &#x20;   └── KRT.Onboarding.UnitTests
+```text
+KRT.Onboarding
+│
+├── KRT.Onboarding.Api
+├── KRT.Onboarding.Application
+├── KRT.Onboarding.Domain
+├── KRT.Onboarding.Infrastructure
+└── KRT.Onboarding.UnitTests
+```
 
-# ```
+### Domain
 
-# 
+Contém as regras e objetos centrais do domínio da aplicação.
 
-# \### Domain
+Principais elementos:
 
-# 
+* `Account`
+* `AccountStatus`
+* `Cpf`
+* `HolderName`
+* `DomainException`
+* Eventos de conta
 
-# Contém as regras e os objetos principais do domínio.
+O domínio não possui dependência das demais camadas.
 
-# 
+### Application
 
-# Entre eles:
+Responsável pelos casos de uso e contratos necessários para execução das regras da aplicação.
 
-# 
+Principais elementos:
 
-# \* `Account`
+* `AccountService`
+* `AccountDto`
+* `IAccountRepository`
+* `IAccountCacheService`
+* `IEventPublisher`
+* Mapeamentos
+* Exceptions da aplicação
 
-# \* `Cpf`
+A camada Application depende do Domain, mas não conhece detalhes de SQL Server, Redis ou tecnologias externas.
 
-# \* `AccountStatus`
+### Infrastructure
 
-# \* Exceções de domínio
+Responsável pelas implementações relacionadas a recursos externos.
 
-# 
+Principais responsabilidades:
 
-# O CPF foi implementado como Value Object para centralizar sua normalização e validação.
+* Entity Framework Core
+* SQL Server
+* Implementação do `IAccountRepository`
+* Redis
+* Implementação do `IAccountCacheService`
+* Implementação do `IEventPublisher`
+* Migrations
 
-# 
+### API
 
-# \### Application
+Responsável pela exposição HTTP da aplicação.
 
-# 
+Contém:
 
-# Responsável pelos casos de uso da aplicação e pelos contratos utilizados pelas demais camadas.
+* Controllers
+* Requests
+* Responses
+* Middleware global de exceptions
+* Configuração de Dependency Injection
+* Swagger
 
-# 
+O fluxo principal da aplicação pode ser representado por:
 
-# Nesta camada estão, por exemplo:
+```text
+HTTP Request (Cliente -> API)
+     │
+     ▼
+Controller
+     │
+     ▼
+Application Service
+     │
+     ├──── Domain
+     │
+     ├──── Repository
+     │
+     ├──── Cache
+     │
+     └──── Event Publisher
+```
 
-# 
+## Funcionalidades
 
-# \* `IAccountService`
+A API disponibiliza operações para:
 
-# \* `IAccountRepository`
+* Criar uma conta
+* Listar contas
+* Consultar uma conta por ID
+* Atualizar uma conta
+* Excluir uma conta
 
-# \* `AccountService`
+Uma conta possui:
 
-# \* DTOs
+* `Id`
+* `HolderName`
+* `Cpf`
+* `Status`
 
-# 
+Os status disponíveis atualmente são:
 
-# \### Infrastructure
+```text
+Inactive = 0
+Active   = 1
+```
 
-# 
+Toda nova conta é criada inicialmente com status `Active`.
 
-# Responsável pelo acesso a recursos externos utilizados pela aplicação.
+## Regras de domínio
 
-# 
+### CPF
 
-# Inclui:
+O CPF foi implementado como um Value Object.
 
-# 
+Durante a criação:
 
-# \* Entity Framework Core
+* O valor é normalizado para conter somente números.
+* Deve possuir 11 dígitos.
+* CPFs formados pelo mesmo dígito são rejeitados.
+* Os dígitos verificadores são validados.
+* O CPF é armazenado sem pontuação.
 
-# \* SQL Server
+Exemplo:
 
-# \* Implementação dos repositories
+```text
+529.982.247-25
+```
 
-# \* Configurações das entidades
+é normalizado para:
 
-# \* Migrations
+```text
+52998224725
+```
 
-# \* Cache
+A validação dos dígitos verificadores foi adotada como uma premissa de negócio adicional para aumentar a consistência dos dados.
 
-# \* Mensageria
+O CPF também possui índice `UNIQUE` no banco de dados, garantindo a unicidade mesmo fora do fluxo normal da aplicação.
 
-# 
+### Nome do titular
 
-# \### API
+`HolderName` também foi implementado como Value Object.
 
-# 
+As principais regras são:
 
-# Camada responsável por receber as requisições HTTP e disponibilizar os endpoints da aplicação.
+* Campo obrigatório.
+* Mínimo de 2 caracteres.
+* Máximo de 150 caracteres.
+* Deve conter letras.
+* Não permite números.
+* Suporta caracteres acentuados.
+* Permite apóstrofo, hífen e ponto.
+* Espaços adicionais são normalizados.
 
-# 
+### Status
 
-# Os controllers foram mantidos com pouca responsabilidade, deixando regras e casos de uso para as camadas apropriadas.
+O status da conta é representado pelo enum `AccountStatus`.
 
-# 
+Além da validação realizada pelo Domain, existe uma `CHECK CONSTRAINT` no SQL Server:
 
-# \## Endpoints
+```sql
+[Status] IN (0, 1)
+```
 
-# 
+Dessa forma, existem duas camadas de proteção:
 
-# | Método | Endpoint             | Descrição                 |
+```text
+Domain
+  └── impede estados inválidos pela aplicação
 
-# | ------ | -------------------- | ------------------------- |
+SQL Server
+  └── impede persistência de valores inválidos diretamente no banco
+```
 
-# | POST   | `/api/accounts`      | Cria uma nova conta       |
+## Persistência
 
-# | GET    | `/api/accounts`      | Retorna todas as contas   |
+A persistência utiliza **SQL Server** com **Entity Framework Core**.
 
-# | GET    | `/api/accounts/{id}` | Retorna uma conta pelo ID |
+O acesso aos dados é abstraído através de:
 
-# | PUT    | `/api/accounts/{id}` | Atualiza uma conta        |
+```text
+IAccountRepository
+```
 
-# | DELETE | `/api/accounts/{id}` | Exclui uma conta          |
+e implementado na camada Infrastructure.
 
-# 
+Consultas somente de leitura utilizam `AsNoTracking()` quando apropriado, evitando tracking desnecessário pelo Entity Framework.
 
-# \## Banco de dados
+As alterações estruturais do banco são controladas através de migrations.
 
-# 
+Para aplicar as migrations:
 
-# Foi utilizado SQL Server com Entity Framework Core.
+```bash
+dotnet ef database update --project KRT.Onboarding.Infrastructure --startup-project KRT.Onboarding.Api
+```
 
-# 
+## Cache
 
-# As alterações do banco são controladas através de migrations.
+Para reduzir consultas repetidas ao banco de dados foi utilizado **Redis**, seguindo a estratégia **Cache-Aside**.
 
-# 
+O cache é aplicado na consulta de conta por ID.
 
-# Para criar ou atualizar o banco local:
+Fluxo:
 
-# 
+```text
+GET /api/accounts/{id}
+          │
+          ▼
+     Consulta Redis
+       /       \
+    HIT         MISS
+     │            │
+     │            ▼
+     │       SQL Server
+     │            │
+     │            ▼
+     │       Salva no Redis
+     │            │
+     └────────────┘
+          │
+          ▼
+       Response
+```
 
-# ```bash
+Quando a conta está no cache, a consulta ao banco de dados é evitada.
 
-# dotnet ef database update --project KRT.Onboarding.Infrastructure --startup-project KRT.Onboarding.Api
+Quando não está:
 
-# ```
+1. A aplicação consulta o Redis.
+2. O cache retorna `null`.
+3. A aplicação consulta o Repository.
+4. O resultado é armazenado no Redis.
+5. A conta é retornada.
 
-# 
+As chaves seguem o padrão:
 
-# \## Configuração da conexão
+```text
+account:{id}
+```
 
-# 
+O cache possui expiração absoluta de 1 dia.
 
-# A connection string não é armazenada no repositório.
+### Invalidação
 
-# 
+Operações que modificam os dados invalidam o cache correspondente:
 
-# Para desenvolvimento local, é possível utilizar o User Secrets do .NET.
+```text
+Update Account
+     │
+     └── Remove account:{id}
 
-# 
+Delete Account
+     │
+     └── Remove account:{id}
+```
 
-# No projeto `KRT.Onboarding.Api`:
+Isso reduz o risco de retornar informações desatualizadas.
 
-# 
+### Por que `GetAll` não utiliza cache?
 
-# ```bash
+O cache foi aplicado especificamente ao cenário de consultas repetidas da mesma conta.
 
-# dotnet user-secrets init
+A consulta por ID possui uma chave previsível e uma estratégia simples de invalidação.
 
-# ```
+O cache de listagens adicionaria maior complexidade, principalmente considerando possíveis evoluções como:
 
-# 
+* paginação;
+* filtros;
+* ordenação;
+* diferentes combinações de consulta.
 
-# Depois configure sua conexão:
+Por isso, foi priorizada uma solução direcionada ao requisito apresentado, evitando adicionar complexidade sem uma necessidade concreta.
 
-# 
+## Eventos e mensageria
 
-# ```bash
+As operações de criação, atualização e exclusão geram eventos representando alterações realizadas nas contas.
 
-# dotnet user-secrets set "ConnectionStrings:DefaultConnection" "SUA\_CONNECTION\_STRING"
+Eventos existentes:
 
-# ```
+```text
+AccountCreatedEvent
+AccountUpdatedEvent
+AccountDeletedEvent
+```
 
-# 
+A Application não depende diretamente de uma tecnologia específica de mensageria.
 
-# Exemplo de connection string para SQL Server:
+A publicação é abstraída através de:
 
-# 
+```csharp
+IEventPublisher
+```
 
-# ```text
+Isso permite que uma implementação externa seja adicionada sem alterar o `AccountService`.
 
-# Server=localhost;Database=KRTOnboarding;User Id=sa;Password=SUA\_SENHA;TrustServerCertificate=True;
+Por exemplo:
 
-# ```
+```text
+AccountService
+      │
+      ▼
+IEventPublisher
+      │
+      ├── RabbitMQ
+      ├── AWS SQS/SNS
+      └── outro broker
+```
 
-# 
+### Implementação atual
 
-# As credenciais utilizadas localmente não devem ser adicionadas ao Git.
+Neste projeto, `EventPublisher` é uma implementação simplificada que não realiza comunicação com um broker externo.
 
-# 
+O objetivo desta implementação é demonstrar a separação arquitetural e o ponto em que os eventos seriam publicados, sem adicionar uma infraestrutura de mensageria que não era necessária para execução local do desafio.
 
-# \## Executando o projeto
+Portanto, o projeto **não deve ser interpretado como possuindo integração real com RabbitMQ, SQS ou outro broker**.
 
-# 
+### Tratamento de falhas
 
-# Clone o repositório e restaure as dependências:
+A publicação dos eventos ocorre após a operação principal da conta.
 
-# 
+O código está preparado para registrar uma eventual falha de publicação sem retornar erro ao cliente depois que a operação principal já tiver sido concluída.
 
-# ```bash
+Em um cenário de produção com necessidade de garantia de entrega, uma evolução recomendada seria a implementação do padrão **Transactional Outbox**, juntamente com processamento assíncrono e política de retry.
 
-# dotnet restore
+Exemplo:
 
-# ```
+```text
+Transaction
+   │
+   ├── Account
+   │
+   └── OutboxMessage
+          │
+        COMMIT
+          │
+          ▼
+   Background Worker
+          │
+          ▼
+       Broker
+```
 
-# 
+Isso permitiria maior confiabilidade entre persistência e publicação dos eventos.
 
-# Configure a connection string utilizando User Secrets e aplique as migrations:
+## Tratamento de erros
 
-# 
+A API possui um middleware global para tratamento de exceptions.
 
-# ```bash
+Exemplos:
 
-# dotnet ef database update --project KRT.Onboarding.Infrastructure --startup-project KRT.Onboarding.Api
+```text
+NotFoundException  → 404 Not Found
+ConflictException  → 409 Conflict
+DomainException    → 400 Bad Request
+Erro inesperado    → 500 Internal Server Error
+```
 
-# ```
+Erros inesperados são registrados através de `ILogger`, enquanto detalhes internos da exception não são expostos ao cliente.
 
-# 
+Exemplo de resposta:
 
-# Depois execute a API:
+```json
+{
+  "status": 404,
+  "message": "Account with ID '...' was not found."
+}
+```
 
-# 
+## Testes unitários
 
-# ```bash
+Os testes estão localizados em:
 
-# dotnet run --project KRT.Onboarding.Api
+```text
+KRT.Onboarding.UnitTests
+│
+├── Domain
+│   ├── Entities
+│   │   └── AccountTests.cs
+│   └── ValueObjects
+│       ├── CpfTests.cs
+│       └── HolderNameTests.cs
+│
+└── Application
+    └── Services
+        └── AccountServiceTests.cs
+```
 
-# ```
+São utilizados:
 
-# 
+* xUnit
+* Moq
+* FluentAssertions
 
-# A documentação dos endpoints pode ser acessada através do Swagger durante a execução da aplicação.
+Os testes seguem o padrão:
 
-# 
+```text
+Arrange
+Act
+Assert
+```
 
-# \## Validações e tratamento de erros
+### Domain
 
-# 
+Os testes de domínio validam regras como:
 
-# As validações foram distribuídas de acordo com a responsabilidade de cada camada.
+* CPF válido e inválido.
+* Normalização do CPF.
+* Dígitos repetidos.
+* Validação do nome.
+* Normalização de espaços.
+* Limites de tamanho.
+* Criação de uma conta ativa.
+* Geração do identificador.
+* Alteração do nome.
+* Alteração e validação do status.
 
-# 
+### Application
 
-# Validações relacionadas ao domínio ficam concentradas nas entidades e Value Objects, enquanto erros conhecidos da aplicação são tratados de forma centralizada.
+Os testes do `AccountService` utilizam mocks para isolar dependências externas.
 
-# 
+Dessa forma, os testes não precisam de:
 
-# A API possui tratamento global de exceções para evitar a necessidade de `try/catch` em cada controller.
+* SQL Server;
+* Redis;
+* Docker;
+* broker de mensagens.
 
-# 
+Entre os cenários testados estão:
 
-# Alguns retornos utilizados:
+```text
+CreateAsync
+├── criação de conta
+└── tentativa de CPF duplicado
 
-# 
+GetByIdAsync
+├── cache hit
+├── cache miss
+└── conta inexistente
 
-# \* `400 Bad Request` para dados inválidos
+UpdateAsync
+├── atualização
+├── invalidação do cache
+└── publicação de evento
 
-# \* `404 Not Found` quando uma conta não é encontrada
+DeleteAsync
+├── exclusão
+├── invalidação do cache
+└── publicação de evento
+```
 
-# \* `409 Conflict` em situações de conflito, como CPF já cadastrado
+Um cenário importante é o cache hit:
 
-# \* `500 Internal Server Error` para erros inesperados
+```text
+AccountService
+     │
+     ▼
+Cache → encontrou
+     │
+     ▼
+retorna resultado
 
-# 
+Repository → não é chamado
+```
 
-# Detalhes internos de erros inesperados não são retornados para o consumidor da API.
+Esse comportamento é verificado através do Moq, garantindo que o Repository não seja consultado quando o dado já estiver disponível no cache.
 
-# 
+Para executar os testes:
 
-# \## Cache
+```bash
+dotnet test
+```
 
-# 
+## Decisões técnicas
 
-# Para reduzir consultas repetidas ao banco de dados, a solução utiliza cache para consultas de contas.
+Algumas decisões tomadas durante o desenvolvimento:
 
-# 
+**Value Objects para CPF e nome**
 
-# A estratégia adotada é Cache-Aside:
+As regras relacionadas aos valores permanecem no Domain em vez de ficarem espalhadas entre Controller, Service e banco de dados.
 
-# 
+**CPF imutável na atualização**
 
-# 1\. A aplicação verifica se a conta está disponível no cache.
+A atualização da conta permite alteração do nome e status, mantendo o CPF como identificador de negócio imutável no fluxo atual.
 
-# 2\. Caso esteja, retorna o dado armazenado.
+**Redis somente no `GetById`**
 
-# 3\. Caso não esteja, consulta o banco de dados e adiciona o resultado ao cache.
+O cache foi aplicado ao cenário diretamente relacionado às consultas repetidas da mesma conta, evitando complexidade desnecessária em listagens.
 
-# 4\. Alterações ou exclusões invalidam o cache correspondente.
+**Abstração para publicação de eventos**
 
-# 
+`IEventPublisher` evita acoplamento da Application a RabbitMQ, AWS ou outra tecnologia específica.
 
-# O tempo de expiração foi definido considerando o requisito de evitar consultas repetidas da mesma conta durante o mesmo dia.
+**Implementação simplificada da mensageria**
 
-# 
+Uma integração real com broker não foi adicionada. A arquitetura está preparada para receber uma implementação posteriormente.
 
-# \## Eventos e mensageria
+**Integridade também no banco**
 
-# 
+Além das regras do Domain, restrições importantes são reforçadas no SQL Server, como CPF único e valores válidos para status.
 
-# Alterações importantes realizadas nas contas geram eventos para que outras áreas possam reagir sem criar dependência direta com a API de Onboarding.
+## Possíveis evoluções
 
-# 
+Para uma aplicação em produção, algumas evoluções possíveis seriam:
 
-# São considerados os seguintes eventos:
+* Transactional Outbox.
+* Broker real de mensagens, como RabbitMQ ou AWS SQS/SNS.
+* Retry e Dead Letter Queue.
+* Testes de integração.
+* Testes de API.
+* Health Checks para SQL Server e Redis.
+* Observabilidade e métricas.
+* Autenticação e autorização.
+* Paginação e filtros no `GetAll`.
+* CI/CD.
+* Containerização completa da API e banco de dados.
 
-# 
+## Princípios aplicados
 
-# \* `AccountCreated`
+Durante o desenvolvimento foram considerados conceitos como:
 
-# \* `AccountUpdated`
+* Clean Code
+* SOLID
+* DDD
+* Dependency Injection
+* Repository Pattern
+* Value Objects
+* Cache-Aside
+* Event-driven architecture
+* Separation of Concerns
+* Testes unitários
 
-# \* `AccountDeleted`
+## Autor
 
-# 
-
-# Dessa forma, outros serviços, como prevenção a fraude ou cartões, podem consumir esses eventos sem que o serviço de contas precise conhecer diretamente esses sistemas.
-
-# 
-
-# \## Testes
-
-# 
-
-# Os testes unitários estão no projeto:
-
-# 
-
-# ```text
-
-# KRT.Onboarding.UnitTests
-
-# ```
-
-# 
-
-# Os testes cobrem principalmente regras de domínio e casos de uso da aplicação.
-
-# 
-
-# Para executar:
-
-# 
-
-# ```bash
-
-# dotnet test
-
-# ```
-
-# 
-
-# \## Decisões adotadas
-
-# 
-
-# Algumas decisões foram tomadas durante o desenvolvimento para manter a solução simples e organizada:
-
-# 
-
-# \* O CPF é tratado como Value Object.
-
-# \* O CPF é normalizado antes de ser armazenado.
-
-# \* Não é permitido cadastrar mais de uma conta com o mesmo CPF.
-
-# \* Uma nova conta é criada inicialmente com status `Active`.
-
-# \* O CPF não pode ser alterado através da atualização da conta.
-
-# \* O domínio não possui dependência do Entity Framework ou da camada de infraestrutura.
-
-# \* O acesso ao banco é realizado através de repositories.
-
-# \* Os controllers são responsáveis apenas pela comunicação HTTP e chamada dos casos de uso.
-
-# \* O tratamento de exceções é centralizado.
-
-# \* Cache e mensageria são tratados através de abstrações para reduzir o acoplamento.
-
-# 
-
-# \## Autor
-
-# 
-
-# Munir Marques
-
-
-
+**Munir Marques**
