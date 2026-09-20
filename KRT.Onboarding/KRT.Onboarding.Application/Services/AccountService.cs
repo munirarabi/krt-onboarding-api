@@ -129,8 +129,7 @@ namespace KRT.Onboarding.Application.Services
 
             var holderNameValue = new HolderName(holderName);
 
-            account.UpdateHolderName(holderNameValue);
-            account.ChangeStatus(status);
+            account.Update(holderNameValue, status);
 
             await _accountRepository.UpdateAsync(account, cancellationToken);
 

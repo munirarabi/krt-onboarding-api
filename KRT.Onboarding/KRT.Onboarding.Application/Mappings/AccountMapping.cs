@@ -12,7 +12,9 @@ namespace KRT.Onboarding.Application.Mappings
                 Id = account.Id,
                 HolderName = account.HolderName.Value,
                 Cpf = account.Cpf.Value,
-                Status = account.Status
+                Status = account.Status,
+                CreatedAt = account.CreatedAt,
+                UpdatedAt = account.UpdatedAt
             };
         }
     }

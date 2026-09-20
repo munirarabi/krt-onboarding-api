@@ -10,6 +10,8 @@ namespace KRT.Onboarding.Domain.Entities
         public HolderName HolderName { get; private set; }
         public Cpf Cpf { get; private set; }
         public AccountStatus Status { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+        public DateTime? UpdatedAt { get; private set; }
 
         private Account()
         {
@@ -23,21 +25,19 @@ namespace KRT.Onboarding.Domain.Entities
             HolderName = holderName;
             Cpf = cpf;
             Status = AccountStatus.Active; // novos usuários irão começar como ativos por default.
+            CreatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateHolderName(HolderName holderName)
-        {
-            HolderName = holderName;
-        }
-
-        public void ChangeStatus(AccountStatus status)
+        public void Update(HolderName holderName, AccountStatus status)
         {
             if (!Enum.IsDefined(status))
             {
                 throw new DomainException("Invalid account status");
             }
 
+            HolderName = holderName;
             Status = status;
+            UpdatedAt = DateTime.UtcNow;
         }
     }
 }
