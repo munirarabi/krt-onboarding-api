@@ -50,6 +50,12 @@ namespace KRT.Onboarding.Infrastructure.Persistence.Configurations
             builder.Property(x => x.Status)
                 .HasConversion<int>()
                 .IsRequired();
+
+            builder.Property(x => x.CreatedAt)
+                .IsRequired();
+
+            builder.Property(x => x.UpdatedAt)
+                .IsRequired(false);
         }
     }
 }
