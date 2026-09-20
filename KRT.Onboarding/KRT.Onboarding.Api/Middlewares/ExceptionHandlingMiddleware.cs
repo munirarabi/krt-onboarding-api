@@ -31,14 +31,14 @@ namespace KRT.Onboarding.Api.Middlewares
         {
             HttpStatusCode statusCode;
 
-            // daria pra melhor usando um Switch Case
+            // Daria pra melhor usando um Switch Case
             if (exception is NotFoundException)
             {
                 statusCode = HttpStatusCode.NotFound;
             }
             else if (exception is ConflictException)
             {
-                // nesse caso utilizei o Status Code 409 (proprio para Conflito)
+                // Nesse caso utilizei o Status Code 409 (proprio para Conflito)
                 // mas outra opção é retornar como Bad Request também..
                 statusCode = HttpStatusCode.Conflict;
             }
