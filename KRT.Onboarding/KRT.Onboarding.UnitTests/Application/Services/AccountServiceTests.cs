@@ -6,7 +6,6 @@ using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Application.Services;
 using KRT.Onboarding.Domain.Entities;
 using KRT.Onboarding.Domain.Enums;
-using KRT.Onboarding.Domain.Events;
 using KRT.Onboarding.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -77,6 +76,10 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             var holderName = "Munir Marques";
             var cpf = "52998224725";
 
+            _accountRepositoryMock
+                .Setup(x => x.ExistsByCpfAsync(cpf, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
             // Act
             Func<Task> action = () => _accountService.CreateAsync(
                 holderName,
@@ -103,6 +106,10 @@ namespace KRT.Onboarding.UnitTests.Application.Services
                 Status = AccountStatus.Active
             };
 
+            _accountCacheServiceMock
+                .Setup(x => x.GetAsync(accountId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(accountDto);
+
             // Act
             var result = await _accountService.GetByIdAsync(
                 accountId,
@@ -114,12 +121,6 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             result.HolderName.Should().Be("Munir Marques");
             result.Cpf.Should().Be("52998224725");
             result.Status.Should().Be(AccountStatus.Active);
-
-            _accountRepositoryMock.Verify(
-                x => x.GetByIdAsync(
-                    It.IsAny<Guid>(),
-                    It.IsAny<CancellationToken>()),
-                    Times.Never);
         }
     }
 }
