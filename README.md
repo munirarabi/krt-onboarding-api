@@ -145,55 +145,6 @@ KRT.Onboarding
 └── KRT.Onboarding.UnitTests
 ```
 
-### Domain
-
-Contém as regras e objetos centrais do domínio da aplicação.
-
-Principais elementos:
-
-* `Account`
-* `AccountStatus`
-* `Cpf`
-* `HolderName`
-* `DomainException`
-* Eventos de conta
-
-O domínio não possui dependência das demais camadas.
-
-### Application
-
-Responsável pelos casos de uso e contratos necessários para execução das regras da aplicação.
-
-Principais elementos:
-
-* `AccountService`
-* `AccountDto`
-* `IAccountRepository`
-* `IAccountCacheService`
-* `IEventPublisher`
-* Mapeamentos
-* Exceptions da aplicação
-
-A camada Application depende do Domain, mas não conhece detalhes de SQL Server, Redis ou tecnologias externas.
-
-### Infrastructure
-
-Responsável pelas implementações relacionadas a recursos externos.
-
-Principais responsabilidades:
-
-* Entity Framework Core
-* SQL Server
-* Implementação do `IAccountRepository`
-* Redis
-* Implementação do `IAccountCacheService`
-* Implementação do `IEventPublisher`
-* Migrations
-
-### API
-
-Responsável pela exposição HTTP da aplicação.
-
 O fluxo principal da aplicação pode ser representado por:
 
 ```text
@@ -269,20 +220,6 @@ Delete Account
 ```
 
 Isso reduz o risco de retornar informações desatualizadas.
-
-## Decisões técnicas
-
-Algumas decisões tomadas durante o desenvolvimento:
-
-**Value Objects para CPF e nome**
-
-As regras relacionadas aos valores permanecem no Domain em vez de ficarem espalhadas entre Controller, Service e banco de dados.
-
-**CPF imutável na atualização**
-
-A atualização da conta permite alteração do nome e status, mantendo o CPF como identificador de negócio imutável no fluxo atual.
-
-**Redis somente no `GetById`**
 
 ## Princípios aplicados
 
