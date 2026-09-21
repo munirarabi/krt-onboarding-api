@@ -9,6 +9,7 @@ namespace KRT.Onboarding.Application.Interfaces.Services
         Task<IEnumerable<AccountDto>> GetAllAsync(CancellationToken cancellationToken);
         Task<AccountDto> GetByIdAsync(Guid id, CancellationToken cancellationToken);
         Task<AccountDto> UpdateAsync(Guid id, string holderName, AccountStatus status, CancellationToken cancellationToken);
+        Task<AccountDto> InactivateAsync(Guid id, CancellationToken cancellationToken);
         Task DeleteAsync(Guid id, CancellationToken cancellationToken);
     }
 }

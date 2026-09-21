@@ -31,7 +31,6 @@ namespace KRT.Onboarding.Api.Middlewares
         {
             HttpStatusCode statusCode;
 
-            // Daria pra melhor usando um Switch Case
             if (exception is NotFoundException)
             {
                 statusCode = HttpStatusCode.NotFound;
