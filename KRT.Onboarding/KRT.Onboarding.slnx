@@ -3,7 +3,6 @@
     <File Path="docker-compose.yml" />
   </Folder>
   <Folder Name="/src/">
-    <File Path="Nuget.Config" />
     <Project Path="KRT.Onboarding.Api/KRT.Onboarding.Api.csproj" />
     <Project Path="KRT.Onboarding.Application/KRT.Onboarding.Application.csproj" />
     <Project Path="KRT.Onboarding.Domain/KRT.Onboarding.Domain.csproj" />
