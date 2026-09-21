@@ -39,5 +39,11 @@ namespace KRT.Onboarding.Domain.Entities
             Status = status;
             UpdatedAt = DateTime.UtcNow;
         }
+
+        public void Inactivate()
+        {
+            Status = AccountStatus.Inactive;
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

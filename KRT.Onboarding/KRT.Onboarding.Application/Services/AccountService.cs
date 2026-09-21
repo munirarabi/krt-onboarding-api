@@ -159,6 +159,24 @@ namespace KRT.Onboarding.Application.Services
             return AccountMapping.ToDto(account);
         }
 
+        public async Task<AccountDto> InactivateAsync(Guid id, CancellationToken cancellationToken)
+        {
+            Account? account = await _accountRepository.GetByIdAsync(id, cancellationToken);
+
+            if (account is null)
+            {
+                throw new NotFoundException($"Account with ID '{id}' was not found.");
+            }
+
+            account.Inactivate();
+
+            await _accountRepository.UpdateAsync(account, cancellationToken);
+
+            await _accountCacheService.RemoveAsync(id, cancellationToken);
+
+            return AccountMapping.ToDto(account);
+        }
+
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
         {
             var account = await _accountRepository.GetByIdAsync(id, cancellationToken);

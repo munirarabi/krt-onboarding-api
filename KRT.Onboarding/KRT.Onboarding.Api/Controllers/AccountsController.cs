@@ -62,6 +62,16 @@ public class AccountsController : ControllerBase
         return Ok(AccountResponse.FromDto(account));
     }
 
+    // PATCH /api/accounts/{id}
+    [HttpPatch("{id:guid}")]
+    public async Task<IActionResult> Inactive(Guid id,
+                                            CancellationToken cancellationToken)
+    {
+        var account = await _accountService.InactivateAsync(id, cancellationToken);
+
+        return Ok(AccountResponse.FromDto(account));
+    }
+
     // DELETE /api/accounts/{id}
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)

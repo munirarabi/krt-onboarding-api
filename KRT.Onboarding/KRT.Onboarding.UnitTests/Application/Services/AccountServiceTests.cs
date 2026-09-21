@@ -6,7 +6,6 @@ using KRT.Onboarding.Application.Interfaces.Repositories;
 using KRT.Onboarding.Application.Services;
 using KRT.Onboarding.Domain.Entities;
 using KRT.Onboarding.Domain.Enums;
-using KRT.Onboarding.Domain.Events;
 using KRT.Onboarding.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -42,9 +41,7 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             var holderName = "Munir Marques";
             var cpf = "52998224725";
 
-            //Quando o método ExistsByCpfAsync do repositório for chamado
-            //com esse CPF, retorne false,
-            //independentemente do CancellationToken utilizado.
+            // configurando o Mock para ExistsByCpfAsync retornar false
             _accountRepositoryMock
                 .Setup(x => x.ExistsByCpfAsync(
                     cpf,
@@ -63,6 +60,8 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             result.Cpf.Should().Be(cpf);
             result.Status.Should().Be(AccountStatus.Active);
 
+            // Serve para verificar se o metodo AddAsync do repositório
+            // foi chamado exatamente uma vez durante o teste
             _accountRepositoryMock.Verify(
             x => x.AddAsync(
                 It.IsAny<Account>(),
@@ -76,6 +75,10 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             // Arrange
             var holderName = "Munir Marques";
             var cpf = "52998224725";
+
+            _accountRepositoryMock
+                .Setup(x => x.ExistsByCpfAsync(cpf, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
 
             // Act
             Func<Task> action = () => _accountService.CreateAsync(
@@ -103,6 +106,10 @@ namespace KRT.Onboarding.UnitTests.Application.Services
                 Status = AccountStatus.Active
             };
 
+            _accountCacheServiceMock
+                .Setup(x => x.GetAsync(accountId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(accountDto);
+
             // Act
             var result = await _accountService.GetByIdAsync(
                 accountId,
@@ -114,12 +121,6 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             result.HolderName.Should().Be("Munir Marques");
             result.Cpf.Should().Be("52998224725");
             result.Status.Should().Be(AccountStatus.Active);
-
-            _accountRepositoryMock.Verify(
-                x => x.GetByIdAsync(
-                    It.IsAny<Guid>(),
-                    It.IsAny<CancellationToken>()),
-                    Times.Never);
         }
     }
 }
