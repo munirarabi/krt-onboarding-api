@@ -155,15 +155,13 @@ HTTP Request (Cliente -> API)
 Controller
      │
      ▼
-Application Service
+Application
      │
-     ├──── Domain
+     ▼
+Domain
      │
-     ├──── Repository
-     │
-     ├──── Cache
-     │
-     └──── Event Publisher
+     ▼
+Repository
 ```
 
 ## Cache
