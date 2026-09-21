@@ -68,6 +68,7 @@ A connection string esperada é:
 ```json
 {
   "ConnectionStrings": {
+    "KRTOnboarding_SQL": "Server=serverHere,1433;Database=KRTOnboarding;User Id=userHere;Password=passwordHere;TrustServerCertificate=True;",
     "Redis": "localhost:6379"
   }
 }
@@ -169,29 +170,7 @@ Application Service
 
 Para reduzir consultas repetidas ao banco de dados foi utilizado **Redis**, seguindo a estratégia **Cache-Aside**.
 
-O cache é aplicado na consulta de conta por ID.
-
-Fluxo:
-
-```text
-GET /api/accounts/{id}
-          │
-          ▼
-     Consulta Redis
-       /       \
-    HIT         MISS
-     │            │
-     │            ▼
-     │       SQL Server
-     │            │
-     │            ▼
-     │       Salva no Redis
-     │            │
-     └────────────┘
-          │
-          ▼
-       Response
-```
+O cache é aplicado na consulta de conta por ID (GetById).
 
 Quando a conta está no cache, a consulta ao banco de dados é evitada.
 
