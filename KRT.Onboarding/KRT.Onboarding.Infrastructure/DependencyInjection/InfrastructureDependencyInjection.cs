@@ -16,7 +16,7 @@ public static class InfrastructureDependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // obtém as connection strings do SQL Server e Redis
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("KRTOnboarding_SQL");
         var redisConnectionString = configuration.GetConnectionString("Redis");
 
         // registra o DbContext utilizando SQL Server

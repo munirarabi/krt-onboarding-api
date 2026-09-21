@@ -41,9 +41,7 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             var holderName = "Munir Marques";
             var cpf = "52998224725";
 
-            //Quando o método ExistsByCpfAsync do repositório for chamado
-            //com esse CPF, retorne false,
-            //independentemente do CancellationToken utilizado.
+            // configurando o Mock para ExistsByCpfAsync retornar false
             _accountRepositoryMock
                 .Setup(x => x.ExistsByCpfAsync(
                     cpf,
@@ -62,6 +60,8 @@ namespace KRT.Onboarding.UnitTests.Application.Services
             result.Cpf.Should().Be(cpf);
             result.Status.Should().Be(AccountStatus.Active);
 
+            // Serve para verificar se o metodo AddAsync do repositório
+            // foi chamado exatamente uma vez durante o teste
             _accountRepositoryMock.Verify(
             x => x.AddAsync(
                 It.IsAny<Account>(),
